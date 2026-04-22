@@ -1,0 +1,2 @@
+# Update the migration_lock.toml for PostgreSQL
+provider = "postgresql"

@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
+  displayName  String
+  passwordHash String
+  avatarUrl    String?
+  status       String    @default("online")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  members      Member[]
+  sentMessages Message[]
+  ownedServers Server[]
+}
+
+model Server {
+  id         String    @id @default(cuid())
+  name       String
+  imageUrl   String?
+  inviteCode String    @unique @default(cuid())
+  ownerId    String
+  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  channels   Channel[]
+  members    Member[]
+}
+
+model Channel {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   @default("text")
+  serverId  String
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Message[]
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  userId    String
+  serverId  String
+  role      String   @default("member")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, serverId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
